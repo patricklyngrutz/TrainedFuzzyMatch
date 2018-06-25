@@ -1,11 +1,11 @@
 Package: TrainedFuzzyMatch
 Type: Package
-Title: What the Package Does (Title Case)
+Title: TF-IDF Matching in Batches
+    Train your IDF weights on a corpus, while limiting matches to an optional batch.
 Version: 0.1.0
-Author: Who wrote it
+Author: Patrick Lyng Rutz
 Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: A wrapper for the tm package.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
