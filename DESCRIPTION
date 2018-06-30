@@ -1,4 +1,4 @@
-Package: TrainedFuzzyMatch
+Package: EasyTFIDF
 Type: Package
 Title: TF-IDF Matching in Batches
     Train your IDF weights on a corpus, while limiting matches to an optional batch.
