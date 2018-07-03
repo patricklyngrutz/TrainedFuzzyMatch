@@ -56,11 +56,11 @@ CosineSimFlat <- function(A, B){
 
 easytfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
     scores <- slam::tcrossprod_simple_triplet_matrix(
-        easytfidf$dtm[key_a]/row_norms(easytfidf$dtm[key_a,]),
+        easytfidf$dtm[key_a,]/row_norms(easytfidf$dtm[key_a,]),
         easytfidf$dtm[keys_b,]/row_norms(easytfidf$dtm[keys_b,])
     )[,]
     if (return_sorted) {
-        scores <- scores %>%
+        scores[] <- scores %>%
             sort(decreasing = T) %>%
             `[`(seq_len(top))
     }
