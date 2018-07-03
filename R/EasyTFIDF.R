@@ -49,3 +49,38 @@ tfidf_scores <- function(char_vector, replace_words = c('\t'=' ','llc'='limited 
     #create function that gets best matches given keys
 
 }
+
+
+CosineSimFlat <- function(A, B){
+    row_sums(A * B) / sqrt(row_sums(A * A) * row_sums(B * B))
+}
+
+CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
+    scores <- slam::tcrossprod_simple_triplet_matrix(
+        dtm[key_a]/row_norms(dtm[key_a,]),
+        dtm[keys_b,]/row_norms(dtm[keys_b,])
+    )[,]
+    if (return_sorted) {
+        scores <- scores %>%
+            sort(decreasing = T) %>%
+            `[`(seq_len(top))
+    }
+    scores
+}
+
+CosineSimMatrix <- function(keys_a, keys_b){
+    slam::tcrossprod_simple_triplet_matrix(
+        dtm[keys_a,]/row_norms(dtm[keys_a,]),
+        dtm[keys_b,]/row_norms(dtm[keys_b,])
+    )
+}
+
+look_at <- function(key){
+    for (i in key){
+        dtm[i,dtm[i,]$j] %>%
+            as.matrix() %>%
+            `[`(1,) %>%
+            sort(decreasing = T) %>%
+            print()
+    }
+}
