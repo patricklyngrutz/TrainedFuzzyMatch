@@ -12,53 +12,52 @@
 #   Build and Reload Package:  'Cmd + Shift + B'
 #   Check Package:             'Cmd + Shift + E'
 #   Test Package:              'Cmd + Shift + T'
+char_vector <- company_names_data
+replace_words <- c('\t'=' ','llc'='limited liability company','inc'='incorporated')
+EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
 
-tfidf_scores <- function(char_vector, replace_words = c('\t'=' ','llc'='limited liability company','inc'='incorporated')) {
-    char_vector <- company_names_data
-    replace_words = c('\t'=' ','llc'='limited liability company','inc'='incorporated')
-    my_corp <- tm::Corpus(tm::VectorSource(char_vector))
-    my_corp <- tm::tm_map(my_corp, stringr::str_to_lower)
-    my_corp <- tm::tm_map(my_corp, function(x) stringr::str_replace_all(x, '[.,;:]', ''))
-    my_corp <- tm::tm_map(my_corp, function(x) stringr::str_replace_all(x, '[-~\\n/]', ' '))
+    easytfidf <- list()
 
-    for (i in seq_along(replace_words)){
-        my_corp <- tm::tm_map(my_corp, function(x) {
-            stringr::str_replace_all(x, paste0('\\b',names(replace_words[i]),'\\b'), replace_words[i])
-        })
+    if(is.null(names(char_vector))){
+        names(char_vector) <- seq_along(char_vector)
     }
 
-    tfidf_scores <- tm::DocumentTermMatrix(
-        my_corp,
-        control = list(
-            weighting = function(x) tm::weightTfIdf(x,
-                                                    normalize = T
-                                                    ),
-            stopwords = F,
-            removeNumbers = F,
-            stopwords = F,
-            stemming = F,
-            wordLengths = c(1,Inf)
+    char_vector[] <- char_vector %>%
+        stringr::str_to_lower() %>%
+        stringr::str_replace_all('[.,;:()\\[\\]]', '') %>%
+        stringr::str_replace_all('[-~\\n/!?]', ' ') %>%
+        stringr::str_replace_all(' +', ' ') %>%
+        stringr::str_trim()
+
+    for (i in seq_along(replace_words)){
+        char_vector[] <- stringr::str_replace_all(
+            char_vector, paste0('\\b',names(replace_words[i]),'\\b'), replace_words[i]
         )
+    }
+
+    easytfidf$doc_keys <- char_vector
+
+    my_corp <- tm::VCorpus(tm::VectorSource(char_vector))
+
+easytfidf$dtm <- tm::DocumentTermMatrix(
+    my_corp,
+    control = list(weighting = function(x) tm::weightTfIdf(x, normalize = F),
+        stopwords = F,
+        removeNumbers = F,
+        stopwords = F,
+        stemming = F,
+        wordLengths = c(1,Inf)
     )
-
-    setNames(tfidf_scores[4,]$v, colnames(tfidf_scores)[tfidf_scores[4,]$j])
-
-    #TODO:
-    #use slam package to do vector 1-length normalization
-    #allow for char vector names as keys
-    #create function that gets best matches given keys
-
-}
-
+)
 
 CosineSimFlat <- function(A, B){
     row_sums(A * B) / sqrt(row_sums(A * A) * row_sums(B * B))
 }
 
-CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
+easytfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
     scores <- slam::tcrossprod_simple_triplet_matrix(
-        dtm[key_a]/row_norms(dtm[key_a,]),
-        dtm[keys_b,]/row_norms(dtm[keys_b,])
+        easytfidf$dtm[key_a]/row_norms(easytfidf$dtm[key_a,]),
+        easytfidf$dtm[keys_b,]/row_norms(easytfidf$dtm[keys_b,])
     )[,]
     if (return_sorted) {
         scores <- scores %>%
@@ -68,19 +67,35 @@ CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_
     scores
 }
 
-CosineSimMatrix <- function(keys_a, keys_b){
+easytfidf$CosineSimMatrix <- function(keys_a = keys_a, keys_b){
     slam::tcrossprod_simple_triplet_matrix(
-        dtm[keys_a,]/row_norms(dtm[keys_a,]),
-        dtm[keys_b,]/row_norms(dtm[keys_b,])
+        easytfidf$dtm[keys_a,]/row_norms(easytfidf$dtm[keys_a,]),
+        easytfidf$dtm[keys_b,]/row_norms(easytfidf$dtm[keys_b,])
     )
 }
 
-look_at <- function(key){
+easytfidf$lookup <- function(key){
     for (i in key){
-        dtm[i,dtm[i,]$j] %>%
+        print(easytfidf$doc_keys[i])
+        easytfidf$dtm[i,easytfidf$dtm[i,]$j] %>%
             as.matrix() %>%
             `[`(1,) %>%
             sort(decreasing = T) %>%
             print()
     }
 }
+
+easytfidf
+
+}
+
+x <- EasyTFIDF(company_names_data)
+
+
+#TODO:
+#use slam package to do vector 1-length normalization
+#allow for char vector names as keys
+#create function that gets best matches given keys
+
+
+
