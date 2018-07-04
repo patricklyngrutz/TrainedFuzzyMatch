@@ -31,7 +31,9 @@ EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
 
     for (i in seq_along(replace_words)){
         char_vector[] <- stringr::str_replace_all(
-            char_vector, paste0('\\b',names(replace_words[i]),'\\b'), replace_words[i]
+            char_vector, paste0('\\b',
+                                stringr::str_to_lower(names(replace_words[i])),
+                                '\\b'), replace_words[i]
         )
     }
 
@@ -60,7 +62,7 @@ easytfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = le
         easytfidf$dtm[keys_b,]/row_norms(easytfidf$dtm[keys_b,])
     )[,]
     if (return_sorted) {
-        scores[] <- scores %>%
+        scores <- scores %>%
             sort(decreasing = T) %>%
             `[`(seq_len(top))
     }
