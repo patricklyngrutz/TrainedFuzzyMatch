@@ -1,4 +1,4 @@
-# Hello, world!
+# EasyTFIDF
 #
 # This is an example function named 'hello'
 # which prints 'Hello, world!'.
@@ -12,8 +12,10 @@
 #   Build and Reload Package:  'Cmd + Shift + B'
 #   Check Package:             'Cmd + Shift + E'
 #   Test Package:              'Cmd + Shift + T'
-char_vector <- company_names_data
-replace_words <- c('\t'=' ','llc'='limited liability company','inc'='incorporated')
+
+#char_vector <- company_names_data
+#replace_words <- c('\t'=' ','llc'='limited liability company','inc'='incorporated')
+
 EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
 
     easytfidf <- list()
@@ -91,7 +93,7 @@ easytfidf
 
 }
 
-x <- EasyTFIDF(company_names_data)
+#x <- EasyTFIDF(company_names_data)
 
 
 #TODO:

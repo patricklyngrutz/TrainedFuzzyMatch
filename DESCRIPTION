@@ -12,4 +12,5 @@ LazyData: true
 Imports:
     tm,
     stringr,
-    slam
+    slam,
+    magrittr
