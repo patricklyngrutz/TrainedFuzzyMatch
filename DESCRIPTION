@@ -14,3 +14,5 @@ Imports:
     stringr,
     slam,
     magrittr
+RoxygenNote: 6.1.0
+Suggests: testthat
