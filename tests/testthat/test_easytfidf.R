@@ -1,4 +1,4 @@
-library('EasyTFIDF')
+#library('EasyTFIDF')
 context('EasyTFIDF list object')
 
 # test_data <- company_names_data  # unnecessary?
@@ -11,6 +11,7 @@ tf_strname <- EasyTFIDF::EasyTFIDF(setNames(company_names_data, company_names_da
 
 test_that('Indexing works with names and numbers', {
     expect_gt(length(company_names_data),0)
+    #expect_true(T)
 
 }
 )
