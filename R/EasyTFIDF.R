@@ -5,7 +5,7 @@
 #' An easy function for processing TFIDF
 #'
 #' This function returns an EasyTFIDF list containing handy functions
-#' @param char_vector A character vector of documents. To be passed as a VectorSource (tm package).
+#' @param char_vector A character vector of documents. To be passed as a VectorSource (tm package). The values may be duplicated but the names may not.
 #' @param replace_words A named character vector. The element names will be replaced with the elements.
 #' @keywords nlp, fuzzy matching, tfidf, tm, easy
 #' @export
@@ -27,11 +27,6 @@ EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
 
     easytfidf <- list()
 
-    # Index names used often - use input name or index
-    if(is.null(names(char_vector))){
-        names(char_vector) <- seq_along(char_vector)
-    }
-
     # Default cleanup for punctuation and whitespace
     char_vector[] <- char_vector %>%
         stringr::str_to_lower() %>%
@@ -40,66 +35,70 @@ EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
         stringr::str_replace_all(' +', ' ') %>%
         stringr::str_trim()
 
+    # Always lower case treatment
+    replace_words[] <- stringr::str_to_lower(replace_words)
+    names(replace_words) <- stringr::str_to_lower(names(replace_words))
+
+    # Iterate through explicit word replacements
     for (i in seq_along(replace_words)){
         char_vector[] <- stringr::str_replace_all(
             char_vector, paste0('\\b',
-                                stringr::str_to_lower(names(replace_words[i])),
+                                names(replace_words[i]),
                                 '\\b'), replace_words[i]
         )
     }
 
-    easytfidf$doc_keys <- char_vector
+    # This will expose any translation along with assigned keys
+    easytfidf$docs <- char_vector
 
     my_corp <- tm::VCorpus(tm::VectorSource(char_vector))
 
-easytfidf$dtm <- tm::DocumentTermMatrix(
-    my_corp,
-    control = list(weighting = function(x) tm::weightTfIdf(x, normalize = F),
-        stopwords = F,
-        removeNumbers = F,
-        stopwords = F,
-        stemming = F,
-        wordLengths = c(1,Inf)
+    easytfidf$dtm <- tm::DocumentTermMatrix(
+        my_corp,
+        control = list(weighting = function(x) tm::weightTfIdf(x, normalize = F),
+                       stopwords = F,
+                       removeNumbers = F,
+                       stopwords = F,
+                       stemming = F,
+                       wordLengths = c(1,Inf)
+        )
     )
-)
 
-CosineSimFlat <- function(A, B){
-    slam::row_sums(A * B) / sqrt(slam::row_sums(A * A) * slam::row_sums(B * B))
-}
-
-easytfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
-    scores <- slam::tcrossprod_simple_triplet_matrix(
-        easytfidf$dtm[key_a,]/slam::row_norms(easytfidf$dtm[key_a,]),
-        easytfidf$dtm[keys_b,]/slam::row_norms(easytfidf$dtm[keys_b,])
-    )
-    names(scores) <- names(easytfidf$dtm[keys_b,])
-    if (return_sorted) {
-        scores <- scores %>%
-            sort(decreasing = T) %>%
-            `[`(seq_len(top))
+    easytfidf$values <- function(keys){
+        lapply(keys, FUN = function(key){
+            easytfidf$dtm[key, easytfidf$dtm[key,]$j] %>%
+                as.matrix() %>%
+                .[,order(., decreasing = T)]
+        })
     }
-    scores
-}
 
-easytfidf$CosineSimMatrix <- function(keys_a = keys_a, keys_b){
-    slam::tcrossprod_simple_triplet_matrix(
-        easytfidf$dtm[keys_a,]/slam::row_norms(easytfidf$dtm[keys_a,]),
-        easytfidf$dtm[keys_b,]/slam::row_norms(easytfidf$dtm[keys_b,])
-    )
-}
-
-easytfidf$lookup <- function(key){
-    for (i in key){
-        print(easytfidf$doc_keys[i])
-        easytfidf$dtm[i,easytfidf$dtm[i,]$j] %>%
-            as.matrix() %>%
-            `[`(1,) %>%
-            sort(decreasing = T) %>%
-            print()
+    CosineSimFlat <- function(A, B){
+        slam::row_sums(A * B) / sqrt(slam::row_sums(A * A) * slam::row_sums(B * B))
     }
-}
 
-easytfidf
+    easytfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
+        scores <- slam::tcrossprod_simple_triplet_matrix(
+            easytfidf$dtm[key_a,]/slam::row_norms(easytfidf$dtm[key_a,]),
+            easytfidf$dtm[keys_b,]/slam::row_norms(easytfidf$dtm[keys_b,])
+        )
+        names(scores) <- names(easytfidf$dtm[keys_b,])
+        if (return_sorted) {
+            scores <- scores %>%
+                sort(decreasing = T) %>%
+                `[`(seq_len(top))
+        }
+        scores
+    }
+
+    easytfidf$CosineSimMatrix <- function(keys_a = keys_a, keys_b){
+        slam::tcrossprod_simple_triplet_matrix(
+            easytfidf$dtm[keys_a,]/slam::row_norms(easytfidf$dtm[keys_a,]),
+            easytfidf$dtm[keys_b,]/slam::row_norms(easytfidf$dtm[keys_b,])
+        )
+    }
+
+
+    easytfidf
 
 }
 
