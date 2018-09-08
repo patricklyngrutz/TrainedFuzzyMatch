@@ -1,8 +1,8 @@
 # eztfidf
 
-#' An easy function for processing TFIDF
+#' A function for turning character vectors into useful distances and analysis quickly.
 #'
-#' This function returns an EasyTFIDF list containing handy functions
+#' This function returns an eztfidf list containing convenient functions.
 #' @param char_vector A character vector of documents. To be passed as a VectorSource (tm package). The values may be duplicated but the names may not.
 #' @param replace_words A named character vector. The element names will be replaced with the elements.
 #' @keywords nlp, fuzzy matching, tfidf, tm, easy
@@ -11,7 +11,7 @@
 #' @examples
 #' super_heroes <- c('The Flash', 'The HULK', 'she-hulk', 'ant-man', 'iron-man', 'bat-man', 'super-man', 'the green arrow')
 #' names(super_heroes) <- super_heroes
-#' x <- EasyTFIDF(
+#' x <- eztfidf(
 #'     super_heroes, replace_words = c('-' = ' ')
 #' )
 #' x$doc_keys[1:3]  # look up by index
@@ -22,9 +22,9 @@
 
 #char_vector <- company_names_data
 #replace_words <- c('\t'=' ','llc'='limited liability company','inc'='incorporated')
-EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
+eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
 
-    easytfidf <- list()
+    eztfidf <- list()
 
     # Default cleanup for punctuation and whitespace
     char_vector[] <- char_vector %>%
@@ -46,11 +46,11 @@ EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
     }
 
     # This will expose any translation along with assigned keys
-    easytfidf$docs <- char_vector
+    eztfidf$docs <- char_vector
 
     my_corp <- tm::VCorpus(tm::VectorSource(char_vector))
 
-    easytfidf$dtm <- tm::DocumentTermMatrix(
+    eztfidf$dtm <- tm::DocumentTermMatrix(
         my_corp,
         control = list(
             stopwords = F,
@@ -64,12 +64,17 @@ EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
         )
     )
 
-    easytfidf$values <- function(keys){
-        lapply(keys, FUN = function(key){
-            easytfidf$dtm[key, easytfidf$dtm[key,]$j] %>%
-                as.matrix() %>%
-                .[,order(., decreasing = T)]
-        })
+    eztfidf$values <- function(keys, mode = c('list','matrix')){
+        if (mode[1] == 'list'){
+            lapply(keys, FUN = function(key){
+                eztfidf$dtm[key, eztfidf$dtm[key,]$j] %>%
+                    as.matrix() %>%
+                    .[,order(., decreasing = T)]
+            })
+        } else if (mode[1] == 'matrix'){
+            #TODO: this
+            #easytfidf$dtm[keys, easytfidf$dtm[keys,]]
+        }
     }
 
     CosineSimFlat <- function(A, B){
