@@ -7,7 +7,7 @@
 EasyTFIDF(char_vector, replace_words = c(`\\t` = " "))
 }
 \arguments{
-\item{char_vector}{A character vector of documents. To be passed as a VectorSource (tm package).}
+\item{char_vector}{A character vector of documents. To be passed as a VectorSource (tm package). The values may be duplicated but the names may not.}
 
 \item{replace_words}{A named character vector. The element names will be replaced with the elements.}
 }

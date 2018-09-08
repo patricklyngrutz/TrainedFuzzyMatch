@@ -1,6 +1,4 @@
-# EasyTFIDF
-
-
+# eztfidf
 
 #' An easy function for processing TFIDF
 #'
@@ -9,6 +7,7 @@
 #' @param replace_words A named character vector. The element names will be replaced with the elements.
 #' @keywords nlp, fuzzy matching, tfidf, tm, easy
 #' @export
+#' @importFrom magrittr %>%
 #' @examples
 #' super_heroes <- c('The Flash', 'The HULK', 'she-hulk', 'ant-man', 'iron-man', 'bat-man', 'super-man', 'the green arrow')
 #' names(super_heroes) <- super_heroes
@@ -35,11 +34,9 @@ EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
         stringr::str_replace_all(' +', ' ') %>%
         stringr::str_trim()
 
-    # Always lower case treatment
+    # Iterate through explicit word replacements (always lower case)
     replace_words[] <- stringr::str_to_lower(replace_words)
     names(replace_words) <- stringr::str_to_lower(names(replace_words))
-
-    # Iterate through explicit word replacements
     for (i in seq_along(replace_words)){
         char_vector[] <- stringr::str_replace_all(
             char_vector, paste0('\\b',
@@ -55,12 +52,15 @@ EasyTFIDF <- function(char_vector, replace_words = c('\t'=' ')) {
 
     easytfidf$dtm <- tm::DocumentTermMatrix(
         my_corp,
-        control = list(weighting = function(x) tm::weightTfIdf(x, normalize = F),
-                       stopwords = F,
-                       removeNumbers = F,
-                       stopwords = F,
-                       stemming = F,
-                       wordLengths = c(1,Inf)
+        control = list(
+            stopwords = F,
+            removePunctuation = F,
+            removeNumbers = F,
+            stopwords = F,
+            stemming = F,
+            wordLengths = c(1,Inf),
+            weighting = function(x) tm::weightTfIdf(x, normalize = F)
+            #weighting = function(x) tm::weightSMART(x, spec = 'ntn'),
         )
     )
 
