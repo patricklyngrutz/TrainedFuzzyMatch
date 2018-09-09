@@ -21,12 +21,14 @@
 #' x$CosineSimMatrix(2)  # all results
 
 #char_vector <- company_names_data
+#char_vector <- setNames(eztfidf::company_names_data, as.character(seq_along(eztfidf::company_names_data)))
+#char_vector <- setNames(eztfidf::company_names_data, eztfidf::company_names_data)
 #replace_words <- c('\t'=' ','llc'='limited liability company','inc'='incorporated')
 eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
 
     eztfidf <- list()
 
-    # Default cleanup for punctuation and whitespace
+    # # Default cleanup for punctuation and whitespace
     char_vector[] <- char_vector %>%
         stringr::str_to_lower() %>%
         stringr::str_replace_all('[.,;:()\\[\\]]', '') %>%
@@ -64,29 +66,36 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
         )
     )
 
+    if (!is.null(names(eztfidf$docs))) eztfidf$dtm$dimnames$Docs <- names(eztfidf$docs)
+
     eztfidf$values <- function(keys, mode = c('list','matrix')){
         if (mode[1] == 'list'){
-            lapply(keys, FUN = function(key){
+            # Returns list, each containing named vector
+            result <- lapply(keys, FUN = function(key){
                 eztfidf$dtm[key, eztfidf$dtm[key,]$j] %>%
                     as.matrix() %>%
-                    .[,order(., decreasing = T)]
+                    .[,order(., decreasing = T), drop = T]
             })
+            # Named list if appropriate
+            if (!is.null(names(eztfidf$docs))) names(result) <- names(eztfidf$docs[keys])
+
         } else if (mode[1] == 'matrix'){
-            #TODO: this
-            #easytfidf$dtm[keys, easytfidf$dtm[keys,]]
+            result <- eztfidf$dtm[keys, sort(unique(eztfidf$dtm[keys,]$j))] %>%
+                as.matrix()
         }
+        result
     }
 
-    CosineSimFlat <- function(A, B){
-        slam::row_sums(A * B) / sqrt(slam::row_sums(A * A) * slam::row_sums(B * B))
-    }
+    #CosineSimFlat <- function(A, B){
+    #    slam::row_sums(A * B) / sqrt(slam::row_sums(A * A) * slam::row_sums(B * B))
+    #}
 
-    easytfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
+    eztfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
         scores <- slam::tcrossprod_simple_triplet_matrix(
-            easytfidf$dtm[key_a,]/slam::row_norms(easytfidf$dtm[key_a,]),
-            easytfidf$dtm[keys_b,]/slam::row_norms(easytfidf$dtm[keys_b,])
+            eztfidf$dtm[key_a,]/slam::row_norms(eztfidf$dtm[key_a,]),
+            eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
         )
-        names(scores) <- names(easytfidf$dtm[keys_b,])
+        names(scores) <- names(eztfidf$dtm[keys_b,])
         if (return_sorted) {
             scores <- scores %>%
                 sort(decreasing = T) %>%
@@ -95,15 +104,14 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
         scores
     }
 
-    easytfidf$CosineSimMatrix <- function(keys_a = keys_a, keys_b){
-        slam::tcrossprod_simple_triplet_matrix(
-            easytfidf$dtm[keys_a,]/slam::row_norms(easytfidf$dtm[keys_a,]),
-            easytfidf$dtm[keys_b,]/slam::row_norms(easytfidf$dtm[keys_b,])
-        )
-    }
+    # eztfidf$CosineSimMatrix <- function(keys_a = keys_a, keys_b){
+    #     slam::tcrossprod_simple_triplet_matrix(
+    #         eztfidf$dtm[keys_a,]/slam::row_norms(eztfidf$dtm[keys_a,]),
+    #         eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
+    #     )
+    # }
 
-
-    easytfidf
+    eztfidf
 
 }
 

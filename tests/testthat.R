@@ -1,4 +1,4 @@
 library(testthat)
-library(EasyTFIDF)
+library(eztfidf)
 
-test_check("EasyTFIDF")
+test_check("eztfidf")

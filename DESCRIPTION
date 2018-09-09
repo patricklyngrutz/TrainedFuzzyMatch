@@ -1,12 +1,11 @@
-Package: EasyTFIDF
+Package: eztfidf
 Type: Package
-Title: TF-IDF Matching in Batches
-    Train your IDF weights on a corpus, while limiting matches to an optional batch.
+Title: Simple interface for TF-IDF distances.
 Version: 0.1.0
 Author: Patrick Lyng Rutz
 Maintainer: The package maintainer <yourself@somewhere.net>
-Description: A wrapper for the tm package.
-License: What license is it under?
+Description: A wrapper for the tm package, allowing very quick access to bag of words analysis and cosine similarities.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports:
