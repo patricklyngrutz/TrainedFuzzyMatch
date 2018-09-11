@@ -105,7 +105,13 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
         )
 
         # scores inherits the names from the documents, whether indexed by number or name
-        if (!is.null(names(eztfidf$docs))) names(scores) <- names(eztfidf$docs[keys_b])
+        # tm::dtm will add names by default, which will be stripped from results
+        if (!is.null(names(eztfidf$docs))) {
+            names(scores) <- names(eztfidf$docs[keys_b])
+        } else {
+            # strip away dimnames and dimensionality
+            scores <- as.numeric(scores)
+        }
 
         # Warn user if they have sorted the results without names to tie back
         if (return_sorted & is.null(names(scores)) & length(keys_b) != 1) {

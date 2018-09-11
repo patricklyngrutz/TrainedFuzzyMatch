@@ -1,5 +1,7 @@
 context('eztfidf$docs')
 
+#TODO: tf_noname$CosineSimVector(1, 1:20, return_sorted = F) ???? has names? dimnames? it has dimnames.
+
 # Initialize eztfidf examples for testing
 replacers = c('INC' = 'incorporated', 'corp' = 'CORPORATION')
 tf_intname <- eztfidf::eztfidf(setNames(company_names_data, seq_along(company_names_data)), replacers)
@@ -63,6 +65,7 @@ test_that('Names are only returned if docs have names', {
     expect_named(tf_intname$CosineSimVector(1,1:3))
     expect_named(tf_intname$CosineSimVector('1',c('1','2','3')))
     expect_null(names(tf_noname$CosineSimVector(1,1:3,return_sorted = F)))
+    expect_null(dimnames(tf_noname$CosineSimVector(1,1:3,return_sorted = F)))
 })
 
 test_that('Warnings are given when illogical sort/top requests are made', {
@@ -84,6 +87,6 @@ test_that('Warnings are given when illogical sort/top requests are made', {
 test_that('CosineSimVector returns NA if asked for top N out of N-1 keys', {
     expect_equal(tf_intname$CosineSimVector('1',c('1','2'), top = 3)[[3]], as.numeric(NA))
     suppressWarnings({  # intentional warning
-    expect_equal(tf_noname$CosineSimVector(1,c(1,2), top = 3)[[3]], as.numeric(NA))
+        expect_equal(tf_noname$CosineSimVector(1,c(1,2), top = 3)[[3]], as.numeric(NA))
     })
 })
