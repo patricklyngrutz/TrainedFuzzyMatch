@@ -69,7 +69,7 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
     if (!is.null(names(eztfidf$docs))) {
         eztfidf$dtm$dimnames$Docs <- names(eztfidf$docs)
     } else {
-        warning('char_vector provided does not have element names, recommend providing names for convenience')
+        warning('char_vector provided does not have element names, recommend providing a named vector for convenience')
     }
 
     eztfidf$values <- function(keys, mode = c('list','matrix')){
@@ -98,11 +98,18 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
     # Cosine similarities for a given key
     eztfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
 
+        if (length(key_a) > 1) stop('Argument key_a must be a single key, please use CosineSimMatrix instead')
+
         # Cosine similarities calculated - will lack names initially
+        tryCatch({
         scores <- slam::tcrossprod_simple_triplet_matrix(
             eztfidf$dtm[key_a,]/slam::row_norms(eztfidf$dtm[key_a,]),
             eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
-        )
+        )}, error = function(e){
+            if (any(! c(key_a, keys_b) %in% names(eztfidf$docs))) {
+                stop('Provided a key not contained in docs, please see $docs')
+            }
+        })
 
         # scores inherits the names from the documents, whether indexed by number or name
         # tm::dtm will add names by default, which will be stripped from results
@@ -141,12 +148,12 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
         scores
     }
 
-    # eztfidf$CosineSimMatrix <- function(keys_a, keys_b = keys_a){
-    #     slam::tcrossprod_simple_triplet_matrix(
-    #         eztfidf$dtm[keys_a,]/slam::row_norms(eztfidf$dtm[keys_a,]),
-    #         eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
-    #     )
-    # }
+    eztfidf$CosineSimMatrix <- function(keys_a, keys_b = keys_a){
+        slam::tcrossprod_simple_triplet_matrix(
+            eztfidf$dtm[keys_a,]/slam::row_norms(eztfidf$dtm[keys_a,]),
+            eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
+        )
+    }
 
     eztfidf
 
