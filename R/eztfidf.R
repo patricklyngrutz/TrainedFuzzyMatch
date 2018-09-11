@@ -66,7 +66,11 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
         )
     )
 
-    if (!is.null(names(eztfidf$docs))) eztfidf$dtm$dimnames$Docs <- names(eztfidf$docs)
+    if (!is.null(names(eztfidf$docs))) {
+        eztfidf$dtm$dimnames$Docs <- names(eztfidf$docs)
+    } else {
+        warning('char_vector provided does not have element names, recommend providing names for convenience')
+    }
 
     eztfidf$values <- function(keys, mode = c('list','matrix')){
         if (mode[1] == 'list'){
@@ -86,6 +90,7 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
         result
     }
 
+    # Deprecated indefinitely - use CosineSimVector
     #CosineSimFlat <- function(A, B){
     #    slam::row_sums(A * B) / sqrt(slam::row_sums(A * A) * slam::row_sums(B * B))
     #}
@@ -102,23 +107,29 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
         # scores inherits the names from the documents, whether indexed by number or name
         if (!is.null(names(eztfidf$docs))) names(scores) <- names(eztfidf$docs[keys_b])
 
-        # Do not sort or return top N if there are no keys to tie back
-        if (return_sorted & is.null(names(scores))){
-            warning('Docs were not given names, sort is ignored')
-        } else if (return_sorted) {
+        # Warn user if they have sorted the results without names to tie back
+        if (return_sorted & is.null(names(scores)) & length(keys_b) != 1) {
+            warning('Docs were not given names and results have been sorted by value')
+        }
+
+        # Warn user if they have not sorted values but requested top
+        if (!is.null(top) & !return_sorted & top != length(keys_b)){
+            warning('Docs must be sorted to return top values - results may be shuffled')
             scores <- scores %>%
                 sort(decreasing = T)
         }
 
-        # Return top values
-        if (top == length(keys_b)) {
+        # Sort if requested
+        if (return_sorted){
+            scores <- scores %>%
+                sort(decreasing = T)
+        }
+
+        # Return top values if requested
+        if (top == length(keys_b) | length(keys_b) == 1) {
             # No action
-        } else if (!is.null(names(scores)) & return_sorted) {
-            # Results will be sorted already - shortcut
+        } else if (!is.null(top)) {
             scores <- scores[seq_len(top)]
-        } else if (!is.null(top)){
-            # Top N results for unnamed docs - numeric scores only
-            scores <- sort(scores, decreasing = T)[seq_len(top)]
         }
 
         scores
