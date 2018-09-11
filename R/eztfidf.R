@@ -92,20 +92,39 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
 
     # Cosine similarities for a given key
     eztfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
+
+        # Cosine similarities calculated - will lack names initially
         scores <- slam::tcrossprod_simple_triplet_matrix(
             eztfidf$dtm[key_a,]/slam::row_norms(eztfidf$dtm[key_a,]),
             eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
         )
-        if (!is.null(names(eztfidf$docs))) names(scores) <- keys_b
-        if (return_sorted) {
+
+        # scores inherits the names from the documents, whether indexed by number or name
+        if (!is.null(names(eztfidf$docs))) names(scores) <- names(eztfidf$docs[keys_b])
+
+        # Do not sort or return top N if there are no keys to tie back
+        if (return_sorted & is.null(names(scores))){
+            warning('Docs were not given names, sort is ignored')
+        } else if (return_sorted) {
             scores <- scores %>%
-                sort(decreasing = T) %>%
-                `[`(seq_len(top))
+                sort(decreasing = T)
         }
+
+        # Return top values
+        if (top == length(keys_b)) {
+            # No action
+        } else if (!is.null(names(scores)) & return_sorted) {
+            # Results will be sorted already - shortcut
+            scores <- scores[seq_len(top)]
+        } else if (!is.null(top)){
+            # Top N results for unnamed docs - numeric scores only
+            scores <- sort(scores, decreasing = T)[seq_len(top)]
+        }
+
         scores
     }
 
-    # eztfidf$CosineSimMatrix <- function(keys_a = keys_a, keys_b){
+    # eztfidf$CosineSimMatrix <- function(keys_a, keys_b = keys_a){
     #     slam::tcrossprod_simple_triplet_matrix(
     #         eztfidf$dtm[keys_a,]/slam::row_norms(eztfidf$dtm[keys_a,]),
     #         eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
