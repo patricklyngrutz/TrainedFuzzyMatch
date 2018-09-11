@@ -28,7 +28,7 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
 
     eztfidf <- list()
 
-    # # Default cleanup for punctuation and whitespace
+    # Default cleanup for punctuation and whitespace
     char_vector[] <- char_vector %>%
         stringr::str_to_lower() %>%
         stringr::str_replace_all('[.,;:()\\[\\]]', '') %>%
@@ -90,12 +90,13 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
     #    slam::row_sums(A * B) / sqrt(slam::row_sums(A * A) * slam::row_sums(B * B))
     #}
 
+    # Cosine similarities for a given key
     eztfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
         scores <- slam::tcrossprod_simple_triplet_matrix(
             eztfidf$dtm[key_a,]/slam::row_norms(eztfidf$dtm[key_a,]),
             eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
         )
-        names(scores) <- names(eztfidf$dtm[keys_b,])
+        if (!is.null(names(eztfidf$docs))) names(scores) <- keys_b
         if (return_sorted) {
             scores <- scores %>%
                 sort(decreasing = T) %>%
