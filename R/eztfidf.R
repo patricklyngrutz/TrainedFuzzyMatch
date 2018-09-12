@@ -149,10 +149,24 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
     }
 
     eztfidf$CosineSimMatrix <- function(keys_a, keys_b = keys_a){
-        slam::tcrossprod_simple_triplet_matrix(
+
+        # Cosine similarities calculated - will lack names initially
+        tryCatch({
+        scores <- slam::tcrossprod_simple_triplet_matrix(
             eztfidf$dtm[keys_a,]/slam::row_norms(eztfidf$dtm[keys_a,]),
             eztfidf$dtm[keys_b,]/slam::row_norms(eztfidf$dtm[keys_b,])
-        )
+        )}, error = function(e){
+            if (any(! c(keys_a, keys_b) %in% names(eztfidf$docs))) {
+                stop('Provided a key not contained in docs, please see $docs')
+            }
+        })
+
+        if (is.null(names(eztfidf$docs))){
+            dimnames(scores) <- NULL
+        }
+
+        scores
+
     }
 
     eztfidf

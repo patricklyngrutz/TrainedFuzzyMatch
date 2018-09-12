@@ -1,7 +1,5 @@
 context('eztfidf$docs')
 
-#TODO: tf_noname$CosineSimVector(1, 1:20, return_sorted = F) ???? has names? dimnames? it has dimnames.
-
 # Initialize eztfidf examples for testing
 replacers = c('INC' = 'incorporated', 'corp' = 'CORPORATION')
 tf_intname <- eztfidf::eztfidf(setNames(company_names_data, seq_along(company_names_data)), replacers)
@@ -89,4 +87,30 @@ test_that('CosineSimVector returns NA if asked for top N out of N-1 keys', {
     suppressWarnings({  # intentional warning
         expect_equal(tf_noname$CosineSimVector(1,c(1,2), top = 3)[[3]], as.numeric(NA))
     })
+})
+
+context('eztfidf$CosineSimMatrix')
+
+test_that('CosineSimMatrix can be called with numbers or names', {
+    expect_equal(dim(tf_intname$CosineSimMatrix(1:3,1:3)), c(3,3))
+    expect_equal(dim(tf_intname$CosineSimMatrix(c('1','2'),c('1','2'))), c(2,2))
+    expect_equal(dim(tf_noname$CosineSimMatrix(c('1','2'), c('1','2'))),c(2,2))
+    expect_equal(dim(tf_noname$CosineSimMatrix(c(1,2),c(1,2))), c(2,2))
+})
+
+test_that('CosineSimMatrix returns named dimensions only with named docs', {
+    expect_equal(dimnames(tf_intname$CosineSimMatrix(1:2,1:2)),
+                 list('Docs' = c('1','2'), 'Docs' = c('1','2'))
+    )
+    expect_null(dimnames(tf_noname$CosineSimMatrix(1:2,1:2)))
+})
+
+test_that('CosineSimMatrix always returns a matrix', {
+    expect_is(tf_noname$CosineSimMatrix(1:2,1:2), 'matrix')
+    expect_is(tf_noname$CosineSimMatrix(1,1:2), 'matrix')
+    expect_is(tf_noname$CosineSimMatrix(1,1), 'matrix')
+
+    expect_is(tf_intname$CosineSimMatrix(c('1','2'), c('1','2')), 'matrix')
+    expect_is(tf_intname$CosineSimMatrix(c('1','2'), c('1')), 'matrix')
+    expect_is(tf_intname$CosineSimMatrix(c('1'), c('1')), 'matrix')
 })
