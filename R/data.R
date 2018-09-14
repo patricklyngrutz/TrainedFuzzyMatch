@@ -1,8 +1,9 @@
-#' Company names data
+#' A public dataset of company names
 #'
 #' @description List of registered Broker-Dealers provided by the SEC to the general public.
 #'
-#' @details A (now outdated) extract was taken as sample input/testing data.
+#' @details The sample dataset provided in the eztfidf package is a good example of where the tfidf adjustment is a critical improvement over simple string distances.
+#' Overused domain-specific language (such as 'securities' or 'associates') can be effectively mitigated with this approach.
 #'
 #' @format An unnamed character vector.
 #' @source \url{https://www.sec.gov/help/foiadocsbdfoiahtm.html}
