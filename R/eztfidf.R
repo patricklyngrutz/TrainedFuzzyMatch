@@ -14,7 +14,7 @@
 #'     'superman', 'the green arrow', 'aqua-man', 'the silver surfer', 'green lantern'
 #'     )
 #' names(super_heroes) <- super_heroes
-#' super_heroes <- gsub('man$', '-MAN', super_heroes, T)  # custom cleaning
+#' super_heroes <- gsub('man$', '-MAN', super_heroes, TRUE)  # custom cleaning
 #' x <- eztfidf(
 #'     super_heroes, replace_words = c('-' = ' ', 'silver' = 'gold')
 #' )
@@ -89,8 +89,9 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
             # Returns list, each containing named vector
             result <- lapply(keys, FUN = function(key){
                 eztfidf$dtm[key, eztfidf$dtm[key,]$j] %>%
-                    as.matrix() %>%
-                    .[,order(., decreasing = T), drop = T]
+                    as.matrix() %>%  # necessary intermediate step from slam triplets
+                    `[`(1, TRUE, drop = T) %>%  # coerces to vector with names
+                    sort(decreasing = T)  # sorts by highest values first
             })
             # Named list if appropriate
             if (!is.null(names(eztfidf$docs))) names(result) <- names(eztfidf$docs[keys])
