@@ -2,7 +2,7 @@
 % Please edit documentation in R/eztfidf.R
 \name{eztfidf}
 \alias{eztfidf}
-\title{A function for turning character vectors into useful distances and analysis quickly.}
+\title{Turn character vectors into tfidf distances easily.}
 \usage{
 eztfidf(char_vector, replace_words = c(`\\t` = " "))
 }
@@ -15,16 +15,28 @@ eztfidf(char_vector, replace_words = c(`\\t` = " "))
 This function returns an eztfidf list containing convenient functions.
 }
 \examples{
-super_heroes <- c('The Flash', 'The HULK', 'she-hulk', 'ant-man', 'iron-man', 'bat-man', 'super-man', 'the green arrow')
+super_heroes <- c(
+    'The Flash', 'The HULK', 'she-hulk', 'ant-man', 'Ironman', 'BATMAN',
+    'superman', 'the green arrow', 'aqua-man', 'the silver surfer', 'green lantern'
+    )
 names(super_heroes) <- super_heroes
+super_heroes <- gsub('man$', '-MAN', super_heroes, T)  # custom cleaning
 x <- eztfidf(
-    super_heroes, replace_words = c('-' = ' ')
+    super_heroes, replace_words = c('-' = ' ', 'silver' = 'gold')
 )
-x$doc_keys[1:3]  # look up by index
-x$doc_keys['The HULK']  # see how names have been transformed
-x$lookup(2:3)  # breakdown docs by dimension scores
-x$CosineSimVector(2, return_sorted = T, top = 3)  # top 3 for she-hulk
-x$CosineSimMatrix(2)  # all results
+
+# Use numeric index or original names to see changes to docs
+x$docs[1:10]
+x$docs[c('The HULK','the silver surfer')]
+
+# Inspect bag-of-words tfidf values as a list or matrix
+x$values(c('the green arrow','green lantern'))
+x$values(c(2,3,8,11), mode = 'matrix')
+
+# Best matching values and cosine similarity matrix easily accessible
+x$CosineSimVector(3, top = 3)
+x$CosineSimVector('the green arrow', top = 3)
+x$CosineSimMatrix(c(2,3,8,11))
 }
 \keyword{easy}
 \keyword{fuzzy}

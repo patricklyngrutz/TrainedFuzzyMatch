@@ -66,6 +66,12 @@ test_that('Names are only returned if docs have names', {
     expect_null(dimnames(tf_noname$CosineSimVector(1,1:3,return_sorted = F)))
 })
 
+test_that('Input key lengths have some flexibility', {
+    expect_error(tf_intname$CosineSimVector())
+    expect_error(tf_intname$CosineSimVector(c(1,2)))
+    expect_equal(length(tf_intname$CosineSimVector(1)), length(company_names_data))
+})
+
 test_that('Warnings are given when illogical sort/top requests are made', {
 
     # Non-named char_vector warnings
@@ -96,6 +102,12 @@ test_that('CosineSimMatrix can be called with numbers or names', {
     expect_equal(dim(tf_intname$CosineSimMatrix(c('1','2'),c('1','2'))), c(2,2))
     expect_equal(dim(tf_noname$CosineSimMatrix(c('1','2'), c('1','2'))),c(2,2))
     expect_equal(dim(tf_noname$CosineSimMatrix(c(1,2),c(1,2))), c(2,2))
+})
+
+test_that('Input key lengths have some flexibility', {
+    expect_equal(dim(tf_noname$CosineSimMatrix()), c(1308,1308))
+    expect_equal(dim(tf_noname$CosineSimMatrix(1:10)), c(10,10))
+    expect_equal(dim(tf_noname$CosineSimMatrix(1:10, 1:5)), c(10,5))
 })
 
 test_that('CosineSimMatrix returns named dimensions only with named docs', {

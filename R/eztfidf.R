@@ -1,6 +1,6 @@
 # eztfidf
 
-#' A function for turning character vectors into useful distances and analysis quickly.
+#' Turn character vectors into tfidf distances easily.
 #'
 #' This function returns an eztfidf list containing convenient functions.
 #' @param char_vector A character vector of documents. To be passed as a VectorSource (tm package). The values may be duplicated but the names may not.
@@ -9,21 +9,29 @@
 #' @export
 #' @importFrom magrittr %>%
 #' @examples
-#' super_heroes <- c('The Flash', 'The HULK', 'she-hulk', 'ant-man', 'iron-man', 'bat-man', 'super-man', 'the green arrow')
+#' super_heroes <- c(
+#'     'The Flash', 'The HULK', 'she-hulk', 'ant-man', 'Ironman', 'BATMAN',
+#'     'superman', 'the green arrow', 'aqua-man', 'the silver surfer', 'green lantern'
+#'     )
 #' names(super_heroes) <- super_heroes
+#' super_heroes <- gsub('man$', '-MAN', super_heroes, T)  # custom cleaning
 #' x <- eztfidf(
-#'     super_heroes, replace_words = c('-' = ' ')
+#'     super_heroes, replace_words = c('-' = ' ', 'silver' = 'gold')
 #' )
-#' x$doc_keys[1:3]  # look up by index
-#' x$doc_keys['The HULK']  # see how names have been transformed
-#' x$lookup(2:3)  # breakdown docs by dimension scores
-#' x$CosineSimVector(2, return_sorted = T, top = 3)  # top 3 for she-hulk
-#' x$CosineSimMatrix(2)  # all results
+#'
+#' # Use numeric index or original names to see changes to docs
+#' x$docs[1:10]
+#' x$docs[c('The HULK','the silver surfer')]
+#'
+#' # Inspect bag-of-words tfidf values as a list or matrix
+#' x$values(c('the green arrow','green lantern'))
+#' x$values(c(2,3,8,11), mode = 'matrix')
+#'
+#' # Best matching values and cosine similarity matrix easily accessible
+#' x$CosineSimVector(3, top = 3)
+#' x$CosineSimVector('the green arrow', top = 3)
+#' x$CosineSimMatrix(c(2,3,8,11))
 
-#char_vector <- company_names_data
-#char_vector <- setNames(eztfidf::company_names_data, as.character(seq_along(eztfidf::company_names_data)))
-#char_vector <- setNames(eztfidf::company_names_data, eztfidf::company_names_data)
-#replace_words <- c('\t'=' ','llc'='limited liability company','inc'='incorporated')
 eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
 
     eztfidf <- list()
@@ -72,7 +80,11 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
         warning('char_vector provided does not have element names, recommend providing a named vector for convenience')
     }
 
-    eztfidf$values <- function(keys, mode = c('list','matrix')){
+    eztfidf$values <- function(keys = NULL, mode = c('list','matrix')){
+
+        # Defaults to entire corpus
+        if (is.null(keys)) keys <- seq_along(eztfidf$docs)
+
         if (mode[1] == 'list'){
             # Returns list, each containing named vector
             result <- lapply(keys, FUN = function(key){
@@ -96,9 +108,12 @@ eztfidf <- function(char_vector, replace_words = c('\t'=' ')) {
     #}
 
     # Cosine similarities for a given key
-    eztfidf$CosineSimVector <- function(key_a, keys_b, return_sorted = T, top = length(keys_b)){
+    eztfidf$CosineSimVector <- function(key_a, keys_b = NULL, return_sorted = T, top = length(keys_b)) {
 
         if (length(key_a) > 1) stop('Argument key_a must be a single key, please use CosineSimMatrix instead')
+
+        if (is.null(keys_b)) keys_b <- seq_along(eztfidf$docs)
+        if (top == 0) top <- length(keys_b)
 
         # Cosine similarities calculated - will lack names initially
         tryCatch({
