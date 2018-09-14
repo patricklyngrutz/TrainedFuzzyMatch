@@ -20,7 +20,7 @@ super_heroes <- c(
     'superman', 'the green arrow', 'aqua-man', 'the silver surfer', 'green lantern'
     )
 names(super_heroes) <- super_heroes
-super_heroes <- gsub('man$', '-MAN', super_heroes, T)  # custom cleaning
+super_heroes <- gsub('man$', '-MAN', super_heroes, TRUE)  # custom cleaning
 x <- eztfidf(
     super_heroes, replace_words = c('-' = ' ', 'silver' = 'gold')
 )
